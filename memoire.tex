@@ -31,89 +31,88 @@
 \subsection{General intro on lidar and how it is generalized in
   forestry}
 Light Detection and Ranging (lidar) uses laser technologies to probe
-surrounding objects to identity their 3D position and shape. They have
+surrounding objects to identity their 3D position and shape. It has
 led to major advances to model complex 3D architectures (todo: cite),
 civil engineering structures \cite{wang2018} while also being a key
-factor for the advancement of autonomous driving \cite{li2020}. Lidars
-can also be attached to aircrafts in order to obtain data for large
-areas. These airborne laser scanners (ALS) can be used to acquire very
-precise terrain models when compared to traditional cameras
-\cite{baltsavias1999}. The same can be applied for vegetation modeling
+factor for the advancement of autonomous driving
+\cite{li2020}. Attaching lidars to various vehicles is common practice
+for acquiring data. Aircrafts, for instance, are particularly useful
+for surveying large areas. Referred to as airborne laser scanners
+(ALS), these lidars are typically used for obtaining very precise
+digital terrain models when compared to traditional cameras
+\cite{baltsavias1999}. The same can be applied for vegetation modelling
 at the canopy level of forests, making those types of scanners really
 desirable for foresters.
 
 \subsection{MLS and TLS introduction}
 
-Although, ALS are not perfect, they can't reliably reach the lower
-part of the forest while also not being able to capture the fine
-details of such complex environment. To work at the scale of the
-smaller elements of the forest, it is better suited to use different
-types of lidar scanners. There is, for example, terrestrial laser
-scanners (TLS) which offers much finer beams when compared to ALS
-while providing a higher point density. They are also much smaller and
-lighter, enough so that a human can carry one. These scanners are
-stationary, they probe for material in a spherical manner at a fixed
-angular resolution.
+Since ALS are operated at high altitudes, they aren't best suited for
+all scenarios of data acquisition. For instance, they can't reliably
+capture the fine details of such complex environment because of their
+rather low point density per square meter. To work at the scale of the
+smaller elements of the forest, it is preferable to use different
+types of lidar scanners. Terrestrial laser scanners (TLS), for
+instance, offers much finer beams when compared to ALS while providing
+a higher point density. They are typically smaller and lighter than
+ALS, enough so that a human can carry one. These scanners are
+stationary, they shoot beams in a spherical manner at a fixed angular
+resolution around the device.
 
-While more precise than ALS, TLS lacks mobility. In order to get a
-more accurate scan of an area with a TLS, it is often necessary to
-scan the same plot from multiple angles, a process often referred as
-multi-scans. These scans must then be combined using reference points
-that were strategically placed during the acquisition, a process that
-can be time consuming. In recent years, we've seen more commercially
+Because TLS are stationary, they can be harder to work with. In order
+to get a more complete scan of an area, it is often necessary to scan
+the same plot from multiple angles. Since all scans create a new point
+cloud, recombining them into a single one can require the use of
+strategically placed markers installed during the acquisition, a
+time-consuming process. In recent years, we've seen more commercially
 available lidars that offer hardware implemented simultaneous
-localization and mapping (SLAM) algorithms. Lidars enhanced with this
-technology are essentially registering points while keeping track of
-the trajectory that the operator took inside a single point
-cloud. These devices are known as mobile laser scanners (MLS). Since
-they are not stationary like TLS, they are inherently able to capture
-multiple angles of the same scene. This feature makes data acquisition
-much faster than TLS while retaining more fine details than an ALS
-would.
+localization and mapping algorithms. Lidars enhanced with this
+technology are registering points while keeping track of the
+trajectory that the operator took. These devices are known as mobile
+laser scanners (MLS). With their mobility, they are inherently able to
+capture multiple angles of the same scene. This feature makes data
+acquisition much faster than TLS while retaining more fine details
+than an ALS would.
 
 \subsection{Lidar limitations}
 
-While all these types of lidar scanners try to solve different issues
-with data acquisition, they ultimately all suffer from the same two
-glaring issues. The first being occlusion. The light emitted from
-these scanners is typically either in the ultraviolet, visible or near
+While all these types of lidar scanners try to solve different
+problems with data acquisition, they ultimately all suffer from the
+same two glaring issues. The first being occlusion. The light emitted
+from these scanners is either in the ultraviolet, visible or near
 infrared band. If an object is in the path of a laser beam, the light
 will not reach the objects behind it. This is why ALS cannot reliably
-reach the understory of a forest and why it's common to use
-multi-scans to counteract this effet with TLS. The other issue is beam
-divergence. All lidars are affected from the fact that they don't
-emmit perfect beams, they have a finite precision. This is most
-apparent with ALS where the size of the projected beams can reach
-several centimeters in diameter. TLS and MLS offers narrower beams
-that can reach level of precision in the milimeters (MLS being
-significantly more imprecise than TLS, but still better than ALS), but
-the footprint of the beams does get larger in the upper part of the
-cannopy.
+reach the understory of a forest and why it's common to use multiple
+scans to counteract this effect with TLS. The other issue is beam
+divergence. All lidars are affected from the fact that they don't emit
+perfect beams, they have a finite precision. This is most apparent
+with ALS where the size of the projected beams can reach several
+centimeters in diameter. The same effect can be observed with MLS,
+where the beams are significantly more imprecise than TLS. This margin
+of error induced by the beams causes issues with the resulting point
+clouds, because objects further away from the scanner can appear
+larger than they truly are.
 
 \subsection{How Lvox deals with these limitations}
 
 To accurately estimate the 3d structure of a forest, it is then
 preferable to work with more precise tools such as MLS or TLS, but
 it's also necessary to take into account their inherent issues. This
-is what the LVox (\cite{nguyen2022}) software seeks to acheive. It
-uses several techniques to correctly estimate the forest structure
-based on the properties of these types of lidar. It takes as an input
-point clouds obtained from such devices, and it outputs estimation of
-the Plant Area Density (PAD), an indicator of the amount of vegetation
-surface inside a volume. The volumes in question are represented as a
-3d grid of voxels, which serves as discrete divisions of the
-continuous space in which points resides. The discretization of space
-is necessary because LVox uses a stochastic approach where the points
-are seen as statistical events in 3d space. To account for occulsion,
-it computes how many points are contained inside a voxel in comparison
-to how much it was explored by rays emitted from a scanner. Using this
-relationship to reduce the contribution of highly explored voxels with
-few points in the PAD estimation helps with correcting biases induced
-by the scanners.
+is what the LVox (\cite{nguyen2022}) software seeks to achieve. It
+takes as an input point clouds obtained from such devices, and it
+outputs estimation of the Plant Area Density (PAD), an indicator of
+the amount of vegetation surface inside a volume. The result of LVox
+is then a 3D grid of voxels that contains the PAD values and other
+metrics. This discretization of space with voxels is necessary because
+LVox uses a stochastic approach where the points are seen as
+statistical events in 3D space. To account for occlusion, it computes
+how many points are contained inside a voxel in comparison to how much
+it was explored by rays emitted from a scanner. Reducing the
+contribution of highly explored voxels with few points in the PAD
+estimation helps with correcting biases induced by the scanners.
 
 \subsection{Lvox objectives}
 
-LVox was developped in \texttt{C++} as a plugin inside the
+LVox was developed in \texttt{C++} as a plugin inside the
 \textit{Computree} computing platform (\cite{computree}). This
 application platform can be used to do various operations on point
 clouds, which are mainly aimed at forestry. It is an open-source
@@ -125,8 +124,8 @@ on it.
 
 Though \textit{Computree} offers a myriad of advantages for the
 researchers who uses it, from an operational standpoint it isn't
-ideal. Firstly, the graphical interface, while useful for developping
-new process chains for point cloud data, makes reusing an extisting
+ideal. Firstly, the graphical interface, while useful for developing
+new process chains for point cloud data, makes reusing an existing
 one cumbersome. The user is expected to set the various parameters
 directly in the various modal windows before starting the
 processing. All these operations can require a lot of manual actions
@@ -135,36 +134,35 @@ inside the graphical interface. \texttt{Computree} does offer a
 interface, but it requires a script that was generated with the
 interface beforehand.
 
-A common use case for operational research, or even for forest
-inventories, is to run the same computation on multiple files. Doing
-manual operations in the interface for every files would be
-impractial, especially since it would not be unsual for operators to
-analyze close to a hundred files. This why the industry has shown a
-great interest for software solution that offer some sort of
-pipeline. For instance, one of the more widely use tool for processing
-point cloud data is the \texttt{R} package \texttt{lidR}
-(\cite{roussel2020}). Instead of having a graphical interface, this
-package provides a programming interface. Users are expected to write
-\texttt{R} code that in turn will compose their processing
-pipeline. For handling large amount of files, users can simply define
-the processing for one file and leverage the capabilities of the
-\texttt{R} language to reuse it for a collection of files. While
-\texttt{lidR} is popular for working with point clouds, it focuses on
-ALS data and generic operation on them, making it distinct from what
-LVox aims at doing.
-
 To lean more on operational use, these issues must be addressed. This
-why we are proposing a new version of LVox which offers better
+is why we are proposing a new version of LVox which offers better
 interoperability by providing an \texttt{R} interface which still uses
 \texttt{C++} as the main language for computation. While converting
 the existing code into a reusable library, we completely revamped and
 simplified the required parameters of the algorithm. We assessed which
-ones contributes the most to the PAD estimation and made them use
+ones contribute the most to the PAD estimation and made them use
 sensible values by default while still remaining configurable. The
 core of the library was also reworked to use parallel processing. This
-new change significantly reduced the computation time required. We
-also aim for this software solution to be easy to install, use and run
-on consumer grade hardware.
+new change significantly reduced the computation time required. We aim
+for this software solution to be easy to install, use and run on
+consumer grade hardware while keeping its original open-source
+approach.
+
+\subsection{Leftovers}
+It would not be unusual for operators to analyze close to a hundred
+files. Doing manual operations in the interface for all files would be
+impractical. This why the industry has shown a great interest for
+software solution that offer some sort of pipeline. For instance, one
+of the more widely use tool for processing point cloud data is the
+\texttt{R} package \texttt{lidR} (\cite{roussel2020}). Instead of
+having a graphical interface, this package provides a programming
+interface. Users are expected to write \texttt{R} code that in turn
+will compose their processing pipeline. For handling large amount of
+files, users can simply define the processing for one file and
+leverage the capabilities of the \texttt{R} language to reuse it for a
+collection of files. While \texttt{lidR} is popular for working with
+point clouds, it focuses on ALS data and generic operation on them,
+making it distinct from what LVox aims at doing.
 
 \section{Theoriticals developments used in LVox}
 
